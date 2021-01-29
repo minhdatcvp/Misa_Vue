@@ -25,7 +25,7 @@
           class="icon-search input-search"
           type="text"
           placeholder="Tìm kiếm theo Mã, Tên hoặc Số điện thoại"
-          @input="getTextSearch"
+          v-model="textSearch"
         />
         <select
           id="cbxDepartment"
@@ -33,17 +33,18 @@
           fieldValue="CustomerGroupId"
           api="/api/customergroups"
           class="m-control"
+          v-model="departmentId"
         >
-          <option value="19165ed7-212e-21c4-0428-030d4265475f">
+          <option value="">
             Tất cả phòng ban
           </option>
-          <option value="19165ed7-212e-21c4-0428-030d4265475f">
-            Văn phòng Tổng công ty
+          <option value="142cb08f-7c31-21fa-8e90-67245e8b283e">
+            Văn phòng Marketting
           </option>
           <option value="7a0b757e-41eb-4df6-c6f8-494a84b910f4">
             Phong đào tạo công nghệ
           </option>
-          <option value="3631011e-4559-4ad8-b0ad-cb989f2177da">
+          <option value="17120d02-6ab5-3e43-18cb-66948daf6128">
             Phòng Nhân sự
           </option>
         </select>
@@ -53,15 +54,16 @@
           fieldValue="CustomerGroupId"
           api="/api/customergroups"
           class="m-control"
+          v-model="positionId"
         >
-          <option value="19165ed7-212e-21c4-0428-030d4265475f">
+          <option value="">
             Tất cả vị trí
           </option>
-          <option value="19165ed7-212e-21c4-0428-030d4265475f">Giám đốc</option>
-          <option value="7a0b757e-41eb-4df6-c6f8-494a84b910f4">
+          <option value="3700cc49-55b5-69ea-4929-a2925c0f334d">Giám đốc</option>
+          <option value="25c6c36e-1668-7d10-6e09-bf1378b8dc91">
             Trưởng phòng
           </option>
-          <option value="3631011e-4559-4ad8-b0ad-cb989f2177da">
+          <option value="148ed882-32b8-218e-9c20-39c2f00615e8">
             Nhân viên
           </option>
         </select>
@@ -180,7 +182,7 @@
         <tbody>
           <tr
             class="el-table__row"
-            v-for="employee in employees"
+            v-for="employee in getTextSearch"
             :key="employee.EmployeeId"
             @dblclick="rowOnClick(employee)"
           >
@@ -274,24 +276,6 @@ export default {
     Details,
   },
   methods: {
-    getTextSearch(event) {
-      var arrSearch = [];
-      this.employees = this.employeeTemp;
-      this.employees.forEach((element) => {
-        if (
-          element.EmployeeCode.toLowerCase().indexOf(
-            event.target.value.toLowerCase()
-          ) !== -1 ||
-          element.FullName.toLowerCase().indexOf(
-            event.target.value.toLowerCase()
-          ) !== -1
-        ) {
-          arrSearch.push(element);
-        }
-      });
-      this.employees = arrSearch;
-      // console.log(this.employees[0].PhoneNumber);
-    },
     btnAddOnClick() {
       this.isHideParent = !this.isHideParent;
     },
@@ -311,12 +295,39 @@ export default {
       this.isHideParent = !this.isHideParent;
     },
   },
+  computed: {
+    getTextSearch() {
+      let filterPosition = this.positionId,
+        filterDepartment = this.departmentId,
+        filterText = this.textSearch;
+
+      return this.employees.filter(function (item) {
+        let filtered = true;
+        if (filterPosition && filterPosition.length > 0) {
+          filtered = item.PositionId == filterPosition;
+        }
+        if (filtered) {
+          if (filterDepartment && filterDepartment.length > 0) {
+            filtered = item.DepartmentId == filterDepartment;
+          }
+        }
+        if (filtered) {
+          if (filterText && filterText.length > 0) {
+            filtered = item.FullName.toLowerCase().includes(filterText.toLowerCase()) || item.EmployeeCode.toLowerCase().includes(filterText.toLowerCase());
+          }
+        }
+        return filtered;
+      });
+    },
+  },
   data() {
     return {
       textSearch: "",
       isShowPopUp: false,
       employeesTemp: {},
       isHideParent: true,
+      positionId: "",
+      departmentId: "",
       selectedEmployee: {
         EmployeeId: 1,
         FullName: "Nguyễn Văn Mạnh",
